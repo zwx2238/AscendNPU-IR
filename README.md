@@ -8,13 +8,12 @@
 
 ### Installing pre-builts that are required to build BiShengIR
 
-1. Extract the CANN package containing the pre-builts corresponding to your target machine to any location. After install, it should contain the following contents:
+1. Extract the package (available in the release page) containing the pre-builts corresponding to your target machine to any location. After install, it should contain the following contents:
 
    ```bash
    ├── lib
      └── libBiShengIR.so     // used to build bishengir dialects
    └── bin
-     └── bishengir-compile   // used to compile IR to binaries
      └── bishengir-yaml-gen  // used to generate files from yaml
    ```
 
