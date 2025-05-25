@@ -1,12 +1,12 @@
-# 昇腾NPU IR（毕昇IR）项目
+# AscendNPU IR（BiSheng IR）项目
 
-## 昇腾NPU IR（毕昇IR）在CANN中的位置
+## AscendNPU IR（BiSheng IR）在CANN中的位置
 
 ![](./doc/pic/ascendnpu-ir-in-cann.png)
 
-## 使用昇腾NPU IR（毕昇IR）
+## 使用AscendNPU IR（BiSheng IR）
 
-### 安装构建毕昇IR所需的预编译组件
+### 安装构建BiSheng IR所需的预编译组件
 
 1. 将包含与您的目标机器对应的预编译组件的包（可在发布页面获取）解压到任意位置。在安装后，它应当包含如下内容：
 
@@ -24,11 +24,11 @@
   ```
 
 
-### 将毕昇IR构建为外部LLVM项目
+### 将BiSheng IR构建为外部LLVM项目
 
-1. 查找构建毕昇IR所依赖的LLVM版本。请查看`cmake/llvm-release-tag.txt`文件获取当前版本信息。
+1. 查找构建BiSheng IR所依赖的LLVM版本。请查看`cmake/llvm-release-tag.txt`文件获取当前版本信息。
   
-    例如，若显示"llvm.18.1.3"，意味着您当前版本的毕昇IR需要基于[LLVM](https://github.com/llvm/llvm-project/tree/llvmorg-18.1.3)的`llvmorg-18.1.3`发行版构建。
+    例如，若显示"llvm.18.1.3"，意味着您当前版本的BiSheng IR需要基于[LLVM](https://github.com/llvm/llvm-project/tree/llvmorg-18.1.3)的`llvmorg-18.1.3`发行版构建。
 
 2. 使用`git checkout`命令签出到此版本。根据需要，您可以对LLVM进行额外修改。
 
