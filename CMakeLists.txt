@@ -1,5 +1,8 @@
 # BiShengIR Project.
 
+option(BISHENGIR_BUILD_EXAMPLES
+  "Build the BiShengIR example programs. If OFF, just generate build targets." OFF)
+
 set(BISHENG_IR_INSTALL_PATH "" CACHE STRING
       "install path for pre-built required for bishengir")
 
@@ -50,6 +53,15 @@ set(LLVM_LIT_ARGS "-sv" CACHE STRING "lit default options")
 add_subdirectory(bishengir/include/bishengir)
 add_subdirectory(bishengir/lib)
 add_subdirectory(bishengir/tools)
+
+if(BISHENGIR_BUILD_EXAMPLES)
+  set(ASCEND_HOME_PATH $ENV{ASCEND_HOME_PATH}
+        CACHE STRING "Ascend CANN install path")
+  if(${ASCEND_HOME_PATH} STREQUAL "")
+    message(FATAL_ERROR "Ascend CANN package is required for building example!")
+  endif()
+  add_subdirectory(examples)
+endif()
 
 if(MLIR_INCLUDE_TESTS)
   add_definitions(-DMLIR_INCLUDE_TESTS)

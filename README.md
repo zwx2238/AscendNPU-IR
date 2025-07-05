@@ -23,12 +23,11 @@
   export BISHENG_IR_INSTALL_PATH = ...
   ```
 
-
 ### Building BiShengIR as an external LLVM Project
 
 1. Find the version of LLVM that BiShengIR builds against. Check `cmake/llvm-release-tag.txt` to see the current version.
   
-    For example, if it says: "llvm.18.1.3", it means that the version of BiShengIR you have builds against [LLVM](https://github.com/llvm/llvm-project/tree/llvmorg-18.1.3) release `llvmorg-18.1.3`.
+    For example, if it says: "llvm.19.1.7", it means that the version of BiShengIR you have builds against [LLVM](https://github.com/llvm/llvm-project/tree/llvmorg-19.1.7) release `llvmorg-19.1.7`.
 
 2. `git checkout` LLVM at this revision. Optionally, make additional modifications to LLVM.
 
@@ -38,28 +37,25 @@
     git submodule add https://gitee.com/ascend/ascendnpu-ir.git third-party/bishengir
     ```
 
-4. Apply `bishengir` related patch files to LLVM.
+4. [Build LLVM](https://llvm.org/docs/CMake.html). This is an example cmake config:
 
     ```bash
-    git apply third-party/bishengir/cmake/bishengir.patch
-    ```
-
-5. [Build LLVM](https://llvm.org/docs/CMake.html).  For example, you might run the following to build the example:
-
-    ```bash
-    cd $HOME/llvm-project  # your clone of LLVM.
+    cd ${HOME}/llvm-project  # your clone of LLVM.
     mkdir build
     cd build
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ../llvm \
       -DLLVM_ENABLE_PROJECTS="mlir;llvm" \
-      -DLLVM_INCLUDE_EXAMPLES=ON \
-      -DLLVM_EXTERNAL_PROJECTS=bishengir \
-      -DLLVM_BUILD_EXAMPLES=ON \
+      -DLLVM_EXTERNAL_PROJECTS="bishengir" \
+      -DLLVM_EXTERNAL_BISHENGIR_SOURCE_DIM=${HOME}/llvm-project/third-party/bishengir \
       -DBISHENG_IR_INSTALL_PATH=${BISHENG_IR_INSTALL_PATH}
     ```
 
-6. Run the following test case to see if the build is successful:
+5. You can build the "check-bishengir" target to build and run unit testcases:
 
    ```bash
-   ./bin/bishengir-minimal-opt ../third-party/bishengir/test/Examples/hfusion.mlir
+   cmake --build . --target "check-bishengir"
    ```
+
+### Building an end-to-end example
+
+Please refer to the `example` directory.

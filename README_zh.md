@@ -28,7 +28,7 @@
 
 1. 查找构建BiSheng IR所依赖的LLVM版本。请查看`cmake/llvm-release-tag.txt`文件获取当前版本信息。
   
-    例如，若显示"llvm.18.1.3"，意味着您当前版本的BiSheng IR需要基于[LLVM](https://github.com/llvm/llvm-project/tree/llvmorg-18.1.3)的`llvmorg-18.1.3`发行版构建。
+    例如，若显示"llvm.19.1.7"，意味着您当前版本的BiSheng IR需要基于[LLVM](https://github.com/llvm/llvm-project/tree/llvmorg-19.1.7)的`llvmorg-19.1.7`发行版构建。
 
 2. 使用`git checkout`命令签出到此版本。根据需要，您可以对LLVM进行额外修改。
 
@@ -38,28 +38,25 @@
     git submodule add https://gitee.com/ascend/ascendnpu-ir.git third-party/bishengir
     ```
 
-4. 将`bishengir`相关补丁文件应用到LLVM中
+4. [构建LLVM](https://llvm.org/docs/CMake.html)。例如，您可以运行以下命令：
 
     ```bash
-    git apply third-party/bishengir/cmake/bishengir.patch
-    ```
-
-5. [构建LLVM](https://llvm.org/docs/CMake.html)。例如，您可以运行以下命令来构建示例：
-
-    ```bash
-    cd $HOME/llvm-project  # your clone of LLVM.
+    cd ${HOME}/llvm-project  # your clone of LLVM.
     mkdir build
     cd build
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ../llvm \
       -DLLVM_ENABLE_PROJECTS="mlir;llvm" \
-      -DLLVM_INCLUDE_EXAMPLES=ON \
-      -DLLVM_EXTERNAL_PROJECTS=bishengir \
-      -DLLVM_BUILD_EXAMPLES=ON \
+      -DLLVM_EXTERNAL_PROJECTS="bishengir" \
+      -DLLVM_EXTERNAL_BISHENGIR_SOURCE_DIM=${HOME}/llvm-project/third-party/bishengir \
       -DBISHENG_IR_INSTALL_PATH=${BISHENG_IR_INSTALL_PATH}
     ```
 
-6. 运行以下测试用例来查看构建是否成功：
+5. 执行以下命令来编译和执行单元测试：
 
    ```bash
-   ./bin/bishengir-minimal-opt ../third-party/bishengir/test/Examples/hfusion.mlir
+   cmake --build . --target "check-bishengir"
    ```
+
+### 如何构建端到端用例
+
+请查看 `example` 目录。
