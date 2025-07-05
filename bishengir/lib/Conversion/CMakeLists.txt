@@ -1,0 +1,5 @@
+add_subdirectory(ArithToHFusion)
+add_subdirectory(GPUToHFusion)
+add_subdirectory(LinalgToHFusion)
+add_subdirectory(MathToHFusion)
+add_subdirectory(TensorToHFusion)

@@ -2,6 +2,8 @@ set(LLVM_LINK_COMPONENTS
   Support
   )
 
+get_property(BISHENGIR_CONVERSION_LIBS GLOBAL PROPERTY BISHENGIR_CONVERSION_LIBS)
+
 set(LIBS
   MLIRParser
   MLIRSupport
@@ -9,6 +11,7 @@ set(LIBS
   MLIROptLib
   MLIRMlirOptMain
   MLIRPass
+  ${BISHENGIR_CONVERSION_LIBS}
 )
 
 add_mlir_tool(bishengir-opt

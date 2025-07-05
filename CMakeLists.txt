@@ -20,6 +20,13 @@ set(BISHENGIR_TOOLS_DIR ${CMAKE_BINARY_DIR}/bin)
 set(BISHENG_IR_LIBS ${BISHENG_IR_INSTALL_PATH}/lib/libBiShengIR.so)
 set(BISHENG_IR_YAML_GEN_EXE ${BISHENG_IR_INSTALL_PATH}/bin/bishengir-yaml-gen)
 
+# Make sure that our source directory is on the current cmake module path so
+# that we can include cmake files from this directory.
+list(INSERT CMAKE_MODULE_PATH 0
+  "${BISHENGIR_SRC_DIR}/cmake/modules"
+  "${LLVM_COMMON_CMAKE_UTILS}/Modules"
+)
+
 list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -28,6 +35,7 @@ include(TableGen)
 include(AddLLVM)
 include(AddMLIR)
 include(AddMLIRPython)
+include(AddBiShengIR)
 
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_MAIN_INCLUDE_DIR})
@@ -40,6 +48,7 @@ add_definitions(${LLVM_DEFINITIONS})
 set(LLVM_LIT_ARGS "-sv" CACHE STRING "lit default options")
 
 add_subdirectory(bishengir/include/bishengir)
+add_subdirectory(bishengir/lib)
 add_subdirectory(bishengir/tools)
 
 if(MLIR_INCLUDE_TESTS)

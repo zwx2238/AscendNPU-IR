@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "bishengir/InitAllDialects.h"
+#include "bishengir/InitAllPasses.h"
 
 #include "mlir/InitAllDialects.h"
 #include "mlir/Tools/mlir-opt/MlirOptMain.h"
@@ -20,6 +21,9 @@ int main(int argc, char **argv) {
   mlir::DialectRegistry registry;
   mlir::registerAllDialects(registry);
   bishengir::registerAllDialects(registry);
+
+  // Register passes.
+  bishengir::registerAllPasses();
 
   return mlir::asMainReturnCode(
       mlir::MlirOptMain(argc, argv, "BiShengIR optimizer driver\n", registry));
