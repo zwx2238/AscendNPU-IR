@@ -18,6 +18,7 @@
 #include "bishengir/Dialect/HACC/IR/HACC.h"
 #include "bishengir/Dialect/HFusion/IR/HFusion.h"
 #include "bishengir/Dialect/HIVM/IR/HIVM.h"
+#include "bishengir/Dialect/MathExt/IR/MathExt.h"
 
 #include "mlir/IR/DialectRegistry.h"
 #include "mlir/IR/MLIRContext.h"
@@ -30,7 +31,8 @@ inline void registerAllDialects(mlir::DialectRegistry &registry) {
   registry.insert<mlir::annotation::AnnotationDialect,
                   mlir::hacc::HACCDialect,
                   mlir::hfusion::HFusionDialect,
-                  mlir::hivm::HIVMDialect>();
+                  mlir::hivm::HIVMDialect,
+                  mlir::mathExt::MathExtDialect>();
   // clang-format on
 }
 
