@@ -284,6 +284,9 @@ metadata: !HFusionOpMetadata
   cpp_class_name: CastOp
   doc: |-
     Applies the cast function elementwise.
+  defines:
+  - hasCanonicalizer
+  - hasVerifier
 structured_op: !HFusionStructuredOpConfig
   args:
   - !HFusionOperandDefConfig
@@ -300,6 +303,10 @@ structured_op: !HFusionStructuredOpConfig
     name: round_mode
     kind: round_mode_attr
     default_fn: RINT
+  - !HFusionOperandDefConfig
+    name: enable_overflow
+    kind: enable_overflow_attr
+    default_fn: true
   indexing_maps: !HFusionIndexingMapsConfig
     static_indexing_maps:
     - affine_map<() -> ()>

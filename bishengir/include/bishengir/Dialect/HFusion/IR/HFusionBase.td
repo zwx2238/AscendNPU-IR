@@ -20,12 +20,16 @@ include "mlir/IR/OpBase.td"
 def HFusion_Dialect : Dialect {
   let name = "hfusion";
   let description = [{
-    HFusion (Hybrid Fusion) dialect.
+    Hybrid Fusion (HFusion) dialect.
   }];
   let cppNamespace = "::mlir::hfusion";
   let dependentDialects = [
+    "hacc::HACCDialect",
     "linalg::LinalgDialect",
+    "mathExt::MathExtDialect",
+    "mesh::MeshDialect",
   ];
+  let hasCanonicalizer = 1;
   let useDefaultAttributePrinterParser = 1;
 }
 

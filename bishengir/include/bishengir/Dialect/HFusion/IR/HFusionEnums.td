@@ -34,7 +34,8 @@ def UnaryFn : I32EnumAttr<"UnaryFn", "", [
   I32EnumAttrCase<"log10", 13>,
   I32EnumAttrCase<"log1p", 14>,
   I32EnumAttrCase<"exp2", 15>,
-  I32EnumAttrCase<"expm1", 16>
+  I32EnumAttrCase<"expm1", 16>,
+  I32EnumAttrCase<"ilogb", 17>
 ]> {
   let genSpecializedAttr = 0;
   let cppNamespace = "::mlir::hfusion";
@@ -47,14 +48,15 @@ def BinaryFn : I32EnumAttr<"BinaryFn", "", [
   I32EnumAttrCase<"minf", 3>,
   I32EnumAttrCase<"maxf", 4>,
   I32EnumAttrCase<"powf", 5>,
-  I32EnumAttrCase<"mod", 6>,
+  I32EnumAttrCase<"mod",  6>,
   I32EnumAttrCase<"shli", 7>,
   I32EnumAttrCase<"shrsi", 8>,
   I32EnumAttrCase<"shrui", 9>,
-  I32EnumAttrCase<"ceildivsi", 10>,
-  I32EnumAttrCase<"ceildivui", 11>,
-  I32EnumAttrCase<"floordivsi", 12>,
-  I32EnumAttrCase<"powi", 13>
+  I32EnumAttrCase<"ldexp", 10>,
+  I32EnumAttrCase<"ceildivsi", 11>,
+  I32EnumAttrCase<"ceildivui", 12>,
+  I32EnumAttrCase<"floordivsi", 13>,
+  I32EnumAttrCase<"powi", 14>
 ]> {
   let genSpecializedAttr = 0;
   let cppNamespace = "::mlir::hfusion";
@@ -109,11 +111,19 @@ def RoundMode : I32EnumAttr<"RoundMode", "", [
   }];
 }
 
+def TaylerMode : I32EnumAttr<"TaylerMode", "", [
+  I32EnumAttrCase<"SIN", 0, "sin">,
+  I32EnumAttrCase<"ATAN", 1, "atan">,
+]> {
+  let genSpecializedAttr = 0;
+  let cppNamespace = "::mlir::hfusion";
+}
+
 def AtomicKind : I32EnumAttr<"AtomicKind", "", [
   I32EnumAttrCase<"NONE", 0, "none">,
   I32EnumAttrCase<"ADD", 1, "add">,
   I32EnumAttrCase<"MAX", 2, "max">,
-  I32EnumAttrCase<"MIN", 3, "min">
+  I32EnumAttrCase<"MIN", 3, "min">,
 ]> {
   let genSpecializedAttr = 0;
   let cppNamespace = "::mlir::hfusion";

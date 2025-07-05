@@ -9,6 +9,7 @@
 #ifndef BISHENGIR_DIALECT_HFUSION_IR_HFUSION_H
 #define BISHENGIR_DIALECT_HFUSION_IR_HFUSION_H
 
+#include "bishengir/Interfaces/AggregatedOpInterface.h"
 #include "mlir/Bytecode/BytecodeOpInterface.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/IR/BuiltinOps.h"

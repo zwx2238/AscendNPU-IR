@@ -16,8 +16,12 @@
 #ifndef BISHENGIR_DIALECT_HFUSION_IR_HFUSIONDOC_TD
 #define BISHENGIR_DIALECT_HFUSION_IR_HFUSIONDOC_TD
 
+// Ops
 include "bishengir/Dialect/HFusion/IR/HFusionBase.td"
 include "bishengir/Dialect/HFusion/IR/HFusionOps.td"
 include "bishengir/Dialect/HFusion/IR/HFusionStructuredOps.td"
+
+// Attributes
+include "bishengir/Dialect/HFusion/IR/HFusionAttrs.td"
 
 #endif // BISHENGIR_DIALECT_HFUSION_IR_HFUSIONDOC_TD
