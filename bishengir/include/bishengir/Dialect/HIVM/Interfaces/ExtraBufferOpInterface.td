@@ -22,7 +22,7 @@ def ExtraBufferOpInterface : OpInterface<"ExtraBufferOpInterface"> {
       /*desc=*/[{
         Allocate extra temp buffers for the current operation.
       }],
-      /*retTy=*/"LogicalResult",
+      /*retTy=*/"llvm::LogicalResult",
       /*methodName=*/"allocExtraBuffersIfPossible",
       /*args=*/(ins)
     >,
@@ -30,7 +30,7 @@ def ExtraBufferOpInterface : OpInterface<"ExtraBufferOpInterface"> {
       /*desc=*/[{
         Get the extra temp buffers.
       }],
-      /*retTy=*/"OperandRange",
+      /*retTy=*/"mlir::OperandRange",
       /*methodName=*/"getExtraBuffers",
       /*args=*/(ins)
     >,

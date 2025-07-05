@@ -17,23 +17,23 @@ include "mlir/IR/OpBase.td"
 
 def OpLayoutInterface : OpInterface<"OpWithLayoutInterface"> {
   let description = [{
-    Interface to query characteristics of HIVM Ops that have specific
-    data layout requirements
+     Interface to query characteristics of HIVM Ops that have specific
+     data layout requirements.
   }];
   let cppNamespace = "::mlir::hivm";
   let methods = [
     InterfaceMethod<
-      /*desc=*/"Returns the target data layouts for memref-typed operands.",
-      /*retTy=*/"SmallVector<DataLayoutAttr>",
-      /*methodName=*/"getOperandsTargetLayout",
-      /*args=*/(ins)
+    /*desc=*/"Returns the target data layouts for memref-typed operands.",
+    /*retTy=*/"mlir::SmallVector<mlir::hivm::DataLayoutAttr>",
+    /*methodName=*/"getOperandsTargetLayout",
+    /*args=*/(ins)
     >,
     InterfaceMethod<
-      /*desc=*/"Returns the current data layouts for memref-typed operands.",
-      /*retTy=*/"SmallVector<DataLayoutAttr>",
-      /*methodName=*/"getOperandsCurrentLayout",
-      /*args=*/(ins)
-    >,
+    /*desc=*/"Returns the current data layouts for memref-typed operands.",
+    /*retTy=*/"mlir::SmallVector<mlir::hivm::DataLayoutAttr>",
+    /*methodName=*/"getOperandsCurrentLayout",
+    /*args=*/(ins)
+    >
   ];
 }
 

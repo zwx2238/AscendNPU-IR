@@ -45,40 +45,40 @@ def OpPipeInterface : OpInterface<"OpPipeInterface"> {
     >,
     InterfaceMethod<
       /*desc=*/"get op pipe if it is op with single pipe.",
-      /*retTy=*/"hivm::PIPE",
+      /*retTy=*/"mlir::hivm::PIPE",
       /*methodName=*/"getPipe",
       /*args=*/(ins),
       /*methodBody=*/[{
         if constexpr(ConcreteOp::template hasTrait<OpTrait::SinglePipeOpTrait>()) {
           return $_op.getPipe();
         } else {
-          return hivm::PIPE::PIPE_UNASSIGNED;
+          return mlir::hivm::PIPE::PIPE_UNASSIGNED;
         }
       }]
     >,
     InterfaceMethod<
       /*desc=*/"get input pipe if it is macro op.",
-      /*retTy=*/"hivm::PIPE",
+      /*retTy=*/"mlir::hivm::PIPE",
       /*methodName=*/"getInPipe",
       /*args=*/(ins),
       /*methodBody=*/[{
         if constexpr(ConcreteOp::template hasTrait<OpTrait::MacroOpTrait>()) {
           return $_op.getInPipe();
         } else {
-          return hivm::PIPE::PIPE_UNASSIGNED;
+          return mlir::hivm::PIPE::PIPE_UNASSIGNED;
         }
       }]
     >,
     InterfaceMethod<
       /*desc=*/"get output pipe if it is macro op.",
-      /*retTy=*/"hivm::PIPE",
+      /*retTy=*/"mlir::hivm::PIPE",
       /*methodName=*/"getOutPipe",
       /*args=*/(ins),
       /*methodBody=*/[{
         if constexpr(ConcreteOp::template hasTrait<OpTrait::MacroOpTrait>()) {
           return $_op.getOutPipe();
         } else {
-          return hivm::PIPE::PIPE_UNASSIGNED;
+          return mlir::hivm::PIPE::PIPE_UNASSIGNED;
         }
       }]
     >,
