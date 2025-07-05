@@ -52,6 +52,8 @@ def HIVM_IteratorType_Deinterleave : I32EnumAttrCase<"kDeinterleave", 5, "deinte
 def HIVM_IteratorType_Inverse : I32EnumAttrCase<"kInverse", 6, "inverse">;
 def HIVM_IteratorType_Pad : I32EnumAttrCase<"kPad", 7, "pad">;
 def HIVM_IteratorType_Concat : I32EnumAttrCase<"kConcat", 8, "concat">;
+def HIVM_IteratorType_Gather : I32EnumAttrCase<"kGather", 9, "gather">;
+def HIVM_IteratorType_Cumulative : I32EnumAttrCase<"kCumulative", 10, "cumulative">;
 def HIVM_IteratorType_Opaque : I32EnumAttrCase<"kOpaque", 99, "opaque">;
 
 def HIVM_IteratorTypeEnum : HIVM_I32Enum<
@@ -65,6 +67,8 @@ def HIVM_IteratorTypeEnum : HIVM_I32Enum<
     HIVM_IteratorType_Inverse,
     HIVM_IteratorType_Pad,
     HIVM_IteratorType_Concat,
+    HIVM_IteratorType_Gather,
+    HIVM_IteratorType_Cumulative,
     HIVM_IteratorType_Opaque
   ]>;
 
@@ -115,7 +119,9 @@ def HIVM_PIPE_MTE4 : I32EnumAttrCase<"PIPE_MTE4", 7>;
 def HIVM_PIPE_MTE5 : I32EnumAttrCase<"PIPE_MTE5", 8>;
 def HIVM_PIPE_V2 : I32EnumAttrCase<"PIPE_V2", 9>;
 def HIVM_PIPE_FIX : I32EnumAttrCase<"PIPE_FIX", 10>;
-def HIVM_PIPE_NUM : I32EnumAttrCase<"PIPE_NUM", 11>;
+def HIVM_VIRTUAL_PIPE_MTE2_L1A : I32EnumAttrCase<"VIRTUAL_PIPE_MTE2_L1A", 11>;
+def HIVM_VIRTUAL_PIPE_MTE2_L1B : I32EnumAttrCase<"VIRTUAL_PIPE_MTE2_L1B", 12>;
+def HIVM_PIPE_NUM : I32EnumAttrCase<"PIPE_NUM", 13>;
 def HIVM_PIPE_UNASSIGNED : I32EnumAttrCase<"PIPE_UNASSIGNED", 99>;
 
 def HIVM_PipeEnum : HIVM_I32Enum<
@@ -131,6 +137,8 @@ def HIVM_PipeEnum : HIVM_I32Enum<
     HIVM_PIPE_MTE5,
     HIVM_PIPE_V2,
     HIVM_PIPE_FIX,
+    HIVM_VIRTUAL_PIPE_MTE2_L1A,
+    HIVM_VIRTUAL_PIPE_MTE2_L1B,
     HIVM_PIPE_NUM,
     HIVM_PIPE_UNASSIGNED
   ]>;
@@ -150,12 +158,14 @@ def HIVM_PipeAttr : HIVM_Attr<"Pipe", "pipe"> {
 def HIVM_AIC : I32EnumAttrCase<"AIC", 1>;
 def HIVM_AIV : I32EnumAttrCase<"AIV", 2>;
 def HIVM_MIX : I32EnumAttrCase<"MIX", 3>;
+def HIVM_AIC_OR_AIV : I32EnumAttrCase<"AIC_OR_AIV", 4>;
 
 def HIVM_TFuncCoreTypeEnum : HIVM_I32Enum<
   "TFuncCoreType", "HIVM Function Core Type", [
     HIVM_AIC,
     HIVM_AIV,
-    HIVM_MIX
+    HIVM_MIX,
+    HIVM_AIC_OR_AIV
   ]>;
 
 def HIVM_TFuncCoreTypeAttr : HIVM_Attr<"TFuncCoreType", "func_core_type"> {
@@ -349,8 +359,7 @@ def HIVM_SyncBlockModeEnum : HIVM_I32Enum<
     HIVM_ALL
   ]>;
 
-def HIVM_SyncBlockModeAttr : HIVM_Attr<
-  "SyncBlockMode", "sync_block_mode"> {
+def HIVM_SyncBlockModeAttr : HIVM_Attr<"SyncBlockMode", "sync_block_mode"> {
   let parameters = (ins EnumParameter<HIVM_SyncBlockModeEnum>:$sync_mode);
   let assemblyFormat = "`<` params `>`";
   let description = [{
@@ -380,7 +389,7 @@ def HIVM_SyncBlockInstrModeAttr : HIVM_Attr<
   let description = [{
     HIVM synchronization block instruction mode attribute.
   }];
-  let constBuilderCall = 
+  let constBuilderCall =
       "::mlir::hivm::SyncBlockInstrModeAttr::get($_builder.getContext(), "
       "::mlir::hivm::SyncBlockInstrMode::INTRA_BLOCK_SYNCHRONIZATION)";
 }
@@ -399,6 +408,7 @@ def HIVM_ReduceOp_ANY : I32EnumAttrCase<"any", 7>;
 def HIVM_ReduceOp_ALL : I32EnumAttrCase<"all", 8>;
 def HIVM_ReduceOp_XORI : I32EnumAttrCase<"xori", 9>;
 def HIVM_ReduceOp_ORI : I32EnumAttrCase<"ori", 10>;
+def HIVM_ReduceOp_NONE : I32EnumAttrCase<"none", 0>;
 
 def HIVM_ReduceOpEnum : HIVM_I32Enum<
   "ReduceOperation", "Reduction kind for VReduceOp", [
@@ -411,7 +421,8 @@ def HIVM_ReduceOpEnum : HIVM_I32Enum<
     HIVM_ReduceOp_ANY,
     HIVM_ReduceOp_ALL,
     HIVM_ReduceOp_XORI,
-    HIVM_ReduceOp_ORI
+    HIVM_ReduceOp_ORI,
+    HIVM_ReduceOp_NONE
   ]>;
 
 def HIVM_ReduceOpAttr : HIVM_Attr<"ReduceOp", "reduce_op"> {
@@ -455,7 +466,8 @@ def HIVM_DataLayoutDotCND : I32EnumAttrCase<"DOTC_ND", 3, "dotC_ND">;
 def HIVM_DataLayoutnZ : I32EnumAttrCase<"nZ", 4, "nZ">;
 def HIVM_DataLayoutzN : I32EnumAttrCase<"zN", 5, "zN">;
 def HIVM_DataLayoutND : I32EnumAttrCase<"ND", 6, "ND">;
-def HIVM_DataLayoutEnum : HIVM_I32Enum<"DataLayout", "HIVM Data Layout", [
+def HIVM_DataLayoutEnum : HIVM_I32Enum<
+  "DataLayout", "HIVM data layout", [
     HIVM_DataLayoutDotAND,
     HIVM_DataLayoutDotBND,
     HIVM_DataLayoutDotCND,
@@ -470,6 +482,11 @@ def HIVM_DataLayoutAttr : HIVM_Attr<"DataLayout", "data_layout"> {
     OptionalParameter<"std::optional<bool>">:$transpose,
     OptionalParameter<"std::optional<DenseI64ArrayAttr>">:$fractalSizes
   );
+  let description = [{
+    HIVM data layout mapping attribute. Maps to DOTA_ND, DOTB_ND, DOTC_ND, zN, nZ and ND.
+      - `transpose`: Indicates that the layout is transposed.
+                     Only valid and must be present for DOTA_ND and DOTB_ND layout.
+  }];
   let builders = [
     AttrBuilder<(ins "hivm::DataLayout":$data_layout)>,
     AttrBuilder<(ins "hivm::DataLayout":$data_layout, "std::optional<bool>":$transpose)>
@@ -486,11 +503,13 @@ def HIVM_DataLayoutAttr : HIVM_Attr<"DataLayout", "data_layout"> {
 
 def HIVM_FIXPIPEPREQUANT_NO_QUANT : I32EnumAttrCase<"NO_QUANT", 0>;
 def HIVM_FIXPIPEPREQUANT_F322F16 : I32EnumAttrCase<"F322F16", 1>;
+def HIVM_FIXPIPEPREQUANT_S322I8 : I32EnumAttrCase<"S322I8", 9>;
 def HIVM_FIXPIPEPREQUANT_F322BF16 : I32EnumAttrCase<"F322BF16", 16>;
 
 def HIVM_FixpipePreQuantModeEnum : HIVM_I32Enum<
   "FixpipePreQuantMode", "HIVM fixpipe pre_quant mode", [
     HIVM_FIXPIPEPREQUANT_NO_QUANT,
+    HIVM_FIXPIPEPREQUANT_S322I8,
     HIVM_FIXPIPEPREQUANT_F322F16,
     HIVM_FIXPIPEPREQUANT_F322BF16
   ]>;
@@ -537,6 +556,39 @@ def HIVM_DeinterleaveModeAttr : HIVM_I32EnumAttr<
   "deinterleave_mode", HIVM_DeinterleaveModeEnum> {
   let description = "HIVM deinterleave index mode";
 }
+
+//===----------------------------------------------------------------------===//
+// Macro Op Related
+//===----------------------------------------------------------------------===//
+
+// Descale Mode for matmul
+def HIVM_DescaleNull : I32EnumAttrCase<"DescaleNull", 0>;
+// Padding using n scale num
+def HIVM_DescalePerChannel : I32EnumAttrCase<"DescalePerChannel", 1>;
+// Padding using one scale num
+def HIVM_DescalePerTensor : I32EnumAttrCase<"DescalePerTensor", 2>;
+def HIVM_DescaleModeEnum : HIVM_I32Enum<"DescaleMode", "descale mode for matmul", [
+    HIVM_DescaleNull,
+    HIVM_DescalePerChannel,
+    HIVM_DescalePerTensor
+]>;
+
+def HIVM_DescaleModeAttr : HIVM_I32EnumAttr<"descale_mode", HIVM_DescaleModeEnum> {
+  let description = [{
+    HIVM descale mode attribute for matmul op.
+  }];
+}
+
+def HIVM_LocalMatmul_NoBias : I32EnumAttrCase<"NoBias", 0>;
+def HIVM_LocalMatmul_PerChannelAdd : I32EnumAttrCase<"PerChannelAdd", 1>;
+def HIVM_LocalMatmul_PerChannelAddWithSplitK : I32EnumAttrCase<"PerChannelAddWithSplitK", 2>;
+def HIVM_LocalMatmul_ElementwiseAdd : I32EnumAttrCase<"ElementwiseAdd", 3>;
+def HIVM_LocalMatmul_BiasModeEnum : HIVM_I32Enum<"MatmulBiasMode", "bias mode for local matmul op", [
+    HIVM_LocalMatmul_NoBias,
+    HIVM_LocalMatmul_PerChannelAdd,
+    HIVM_LocalMatmul_PerChannelAddWithSplitK,
+    HIVM_LocalMatmul_ElementwiseAdd
+]>;
 
 //===----------------------------------------------------------------------===//
 // Misc.

@@ -16,16 +16,18 @@
 include "mlir/IR/OpBase.td"
 include "mlir/Interfaces/DestinationStyleOpInterface.td"
 
+include "bishengir/Interfaces/AggregatedOpInterface.td"
+include "bishengir/Dialect/HIVM/Interfaces/ImplByScalarOpInterface.td"
 include "bishengir/Dialect/HIVM/Interfaces/ExtraBufferOpInterface.td"
 include "bishengir/Dialect/HIVM/Interfaces/OpPipeInterface.td"
 
 def HIVMCoreTypeInterface : OpInterface<"CoreTypeInterface"> {
   let description = [{
-    Interface to query the core type of HIVM Ops.
+     Interface to query the core type of HIVM Ops.
 
-    There are 2 use cases:
-    1. CoreType is staticly attatched to an op by trait `CoreTypeTrait`.
-    2. CoreType is dynamicly inferred through `inferCoreTypeInterface`.
+     There are 2 use cases:
+     1. CoreType is staticly attatched to an op by trait 'CoreTypeTrait'
+     2. CoreType is dynamicly inferred through 'InferCoreTypeInterface'
   }];
   let cppNamespace = "::mlir::hivm";
   let methods = [
@@ -42,7 +44,7 @@ def HIVMCoreTypeInterface : OpInterface<"CoreTypeInterface"> {
 
 def HIVMInferCoreTypeInterface : OpInterface<"InferCoreTypeInterface"> {
   let description = [{
-    Interface to infer the core type of HIVM Ops.
+     Interface to infer the core type of HIVM Ops.
   }];
   let cppNamespace = "::mlir::hivm";
   let methods = [
@@ -53,17 +55,20 @@ def HIVMInferCoreTypeInterface : OpInterface<"InferCoreTypeInterface"> {
     /*args=*/(ins),
     /*methodBody=*/"",
     /*defaultImplementation=*/[{
-      return std::nullopt;
-    }]
+        return std::nullopt;
+      }]
     >,
   ];
 }
 
 def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
-  [DestinationStyleOpInterface, OpPipeInterface, HIVMCoreTypeInterface]> {
+    [DestinationStyleOpInterface, // for buferization
+     OpPipeInterface,             // for sync analysis
+     HIVMCoreTypeInterface,       // for mix kernel related analysis
+    ]> {
   let cppNamespace = "::mlir::hivm";
   let description = [{
-      Hybrid Intelligence Virtual Machine (HIVM) Structured Operation interface.
+    Hybrid Intelligence Virtual Machine (HIVM) Structured Operation interface.
   }];
   let methods = [
     //===------------------------------------------------------------------===//
@@ -130,7 +135,7 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
       /*methodBody=*/"",
       /*defaultImplementation=*/[{
         return llvm::count($_op.getIteratorTypesArray(),
-          mlir::hivm::IteratorType::kParallel);
+                           mlir::hivm::IteratorType::kParallel);
       }]
     >,
     InterfaceMethod<
@@ -189,7 +194,7 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
       /*desc=*/[{
         Return the permutation array.
       }],
-      /*retTy=*/"ArrayRef<int64_t>",
+      /*retTy=*/"mlir::ArrayRef<int64_t>",
       /*methodName=*/"getPermutationArray",
       /*args=*/(ins),
       /*methodBody=*/"",
@@ -223,6 +228,19 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
           mlir::hivm::IteratorType::kConcat, res);
       }]
     >,
+    InterfaceMethod<
+      /*desc=*/[{
+        Return the dims that are gather loops.
+      }],
+      /*retTy=*/"void",
+      /*methodName=*/"getGatherLoopDims",
+      /*args=*/(ins "SmallVectorImpl<int64_t> &":$res),
+      /*methodBody=*/"",
+      /*defaultImplementation=*/[{
+        return ::mlir::hivm::detail::findPositionsOfType($_op.getIteratorTypesArray(),
+          mlir::hivm::IteratorType::kGather, res);
+      }]
+    >,
     //===------------------------------------------------------------------===//
     // Other interface methods.
     //===------------------------------------------------------------------===//
@@ -230,7 +248,7 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
       /*desc=*/[{
         Return the iterator types of the current operation.
       }],
-      /*retTy=*/"SmallVector<::mlir::hivm::IteratorType>",
+      /*retTy=*/"mlir::SmallVector<::mlir::hivm::IteratorType>",
       /*methodName=*/"getIteratorTypesArray",
       /*args=*/(ins),
       /*methodBody=*/"",
@@ -245,13 +263,13 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
       /*desc=*/[{
         Return the iterator types of the current operation.
       }],
-      /*retTy=*/"LogicalResult",
+      /*retTy=*/"llvm::LogicalResult",
       /*methodName=*/"setIteratorTypesArray",
       /*args=*/(ins "const IteratorType":$iteratorType, "const DenseI64ArrayAttr &":$arrayAttr),
       /*methodBody=*/"",
       /*defaultImplementation=*/[{
         if ($_op.isElemwiseNaryOp())
-          return hivm::detail::setIteratorTypesArrayForElemwiseOp($_op, iteratorType, arrayAttr);
+           return hivm::detail::setIteratorTypesArrayForElemwiseOp($_op, iteratorType, arrayAttr);
 
         llvm_unreachable("set iterator not implemented");
       }]
@@ -268,28 +286,27 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
         if ($_op.hasPureTensorSemantics()) {
           return;
         }
-        ::mlir::hivm::detail::getEffectsImpl(effects,
-          $_op.getResults(), $_op.getDpsInputs(), $_op.getDpsInits());
+        ::mlir::hivm::detail::getEffectsImpl(effects, cast<hivm::HIVMStructuredOp>($_op.getOperation()));
       }]
     >,
     InterfaceMethod<
       /*desc=*/[{
-        Get operands with target memref space.
+        get Operands with target memref space.
       }],
-      /*retTy=*/"SmallVector<Value>",
+      /*retTy=*/"mlir::SmallVector<mlir::Value>",
       /*methodName=*/"getTargetSpaceOperands",
-      /*args=*/(ins "hivm::AddressSpace":$AddressSpace,"bool":$includeTmpBuffer),
+      /*args=*/(ins "hivm::AddressSpace":$addressSpace, "bool":$includeTmpBuffer),
       /*methodBody=*/"",
       /*defaultImplementation=*/[{
         return ::mlir::hivm::detail::getTargetSpaceOperandsImpl(
-          $_op, AddressSpace, includeTmpBuffer);
+          $_op, addressSpace, includeTmpBuffer);
       }]
     >,
     InterfaceMethod<
       /*desc=*/[{
-        Get the op with or without temp buffer.
+       Get the op with or without temp buffer
       }],
-      /*retTy=*/"::llvm::SmallVector<::mlir::OpOperand *>",
+      /*retTy=*/"mlir::SmallVector<::mlir::OpOperand *>",
       /*methodName=*/"getHIVMOperands",
       /*args=*/(ins "bool":$includeExtraBuffer),
       /*methodBody=*/"",
@@ -299,9 +316,9 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
     >,
     InterfaceMethod<
       /*desc=*/[{
-        Get the op type with or without temp buffer.
+       Get the op type with or without temp buffer
       }],
-      /*retTy=*/"::llvm::SmallVector<::mlir::Type>",
+      /*retTy=*/"mlir::SmallVector<::mlir::Type>",
       /*methodName=*/"getHIVMOperandTypes",
       /*args=*/(ins "bool":$includeExtraBuffer),
       /*methodBody=*/"",
@@ -311,22 +328,46 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
     >,
     InterfaceMethod<
       /*desc=*/[{
-        Check if the operand is vector only at a specific index.
+       Get the input operand with or without temp buffer
+      }],
+      /*retTy=*/"mlir::SmallVector<::mlir::OpOperand *>",
+      /*methodName=*/"getHIVMInputOperands",
+      /*args=*/(ins "bool":$includeExtraBuffer),
+      /*methodBody=*/"",
+      /*defaultImplementation=*/[{
+        return ::mlir::hivm::detail::getHIVMInputOperandsImpl($_op, includeExtraBuffer);
+      }]
+    >,
+    InterfaceMethod<
+      /*desc=*/[{
+       check if the operand is vector only at a specific index
       }],
       /*retTy=*/"bool",
       /*methodName=*/"isVectorOnlyOperand",
-      /*args=*/(ins "size_t":$idx),
+      /*args=*/(ins "size_t": $idx),
       /*methodBody=*/"",
       /*defaultImplementation=*/[{
         return ::mlir::hivm::detail::isVectorOnlyOperandImpl($_op, idx);
       }]
     >,
-    /// Need to implement this for every Concrete op
+    InterfaceMethod<
+      /*desc=*/[{
+       Get mask contiguous dimension of this current op
+      }],
+      /*retTy=*/"mlir::BitVector",
+      /*methodName=*/"getContiguousAxes",
+      /*args=*/(ins),
+      /*methodBody=*/"",
+      /*defaultImplementation=*/[{
+        return ::mlir::hivm::detail::getContiguousAxesImpl($_op);
+      }]
+    >,
+    /// Need to implement this for every concrete op
     InterfaceMethod<
       /*desc=*/[{
         Return the indexing maps attribute within the current operation.
       }],
-      /*retTy=*/"ArrayAttr",
+      /*retTy=*/"mlir::ArrayAttr",
       /*methodName=*/"getIndexingMaps",
       /*args=*/(ins),
       /*methodBody=*/"",
@@ -339,37 +380,14 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
       /*desc=*/[{
         Return the indexing maps within the current operation.
       }],
-      /*retTy=*/"SmallVector<AffineMap>",
+      /*retTy=*/"mlir::SmallVector<mlir::AffineMap>",
       /*methodName=*/"getIndexingMapsArray",
       /*args=*/(ins),
       /*methodBody=*/"",
       /*defaultImplementation=*/[{
-        auto range = $_op.getIndexingMaps().template getAsValueRange<AffineMapAttr>();
+        auto range = $_op.getIndexingMaps()
+          .template getAsValueRange<AffineMapAttr>();
         return {range.begin(), range.end()};
-      }]
-    >,
-    InterfaceMethod<
-      /*desc=*/[{
-        Return the indexing maps within the current operation.
-      }],
-      /*retTy=*/"SmallVector<OpFoldResult>",
-      /*methodName=*/"createFlatListOfMixedShapeOperand",
-      /*args=*/(ins "OpBuilder &":$b, "Location &":$loc),
-      /*methodBody=*/"",
-      /*defaultImplementation=*/[{
-        return cast<HIVMStructuredOp>(this->getOperation()).createFlatListOfOperandDims(b, loc);
-      }]
-    >,
-    InterfaceMethod<
-      /*desc=*/[{
-        Return the indexing maps within the current operation.
-      }],
-      /*retTy=*/"SmallVector<AffineMap>",
-      /*methodName=*/"getIndexingMapsArrayForSCF",
-      /*args=*/(ins),
-      /*methodBody=*/"",
-      /*defaultImplementation=*/[{
-        return $_op.getIndexingMapsArray();
       }]
     >,
     InterfaceMethod<
@@ -386,7 +404,7 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
         traversal order for which we can still easily compute hyperrectangular
         loop bounds and subviews.
       }],
-      /*retTy=*/"AffineMap",
+      /*retTy=*/"mlir::AffineMap",
       /*methodName=*/"getLoopsToShapesMap",
       /*args=*/(ins),
       /*methodBody=*/"",
@@ -397,8 +415,31 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
     >,
     InterfaceMethod<
       /*desc=*/[{
-        Return the `opOperand` rank or zero for scalars or
-        vectors not wrapped within a tensor or a memref.
+        Hook to provide a custom AffineMap used to construct the
+        hyperrectangular loop iteration space given all the operand subshapes.
+        This is used to answer the question:
+        "Given a list of operand ranges, what is the subportion of the iteration
+        space involved in the computation".
+        This is the inverse problem of `getLoopsToShapesMap`.
+        Return the empty AffineMap when such an AffineMap cannot be constructed.
+        The default behavior is based on a very simple inference procedure that
+        only works with permutation affine maps.
+        A more advanced Tensor-Comprehension like inference is possible but has
+        proven to be ambiguous in unfavorable case.
+        A safer and more robust alternative is to allow each op to define
+        its own AffineMap.
+      }],
+      /*retTy=*/"mlir::AffineMap",
+      /*methodName=*/"getShapesToLoopsMap",
+      /*args=*/(ins),
+      /*methodBody=*/"",
+      /*defaultImplementation=*/[{
+        return inversePermutation(getLoopsToShapesMap());
+      }]
+    >,
+    InterfaceMethod<
+      /*desc=*/[{
+        Return the `opOperand` rank or zero for scalars or vectors not wrapped within a tensor or a memref.
       }],
       /*retTy=*/"int64_t",
       /*methodName=*/"getRank",
@@ -407,14 +448,11 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
       /*defaultImplementation=*/[{
         assert(opOperand->getOwner() == this->getOperation());
         Type t = opOperand->get().getType();
-        // A VectorType is an elemental type, do not consider its rank for the operand.
-        if (isa<VectorType>(t))
-          return 0;
         // Tensor and Memref container types have a rank.
         if (auto shapedType = ::llvm::dyn_cast<ShapedType>(t)) {
           // Failsafe.
           assert((isa<MemRefType>(t) || isa<RankedTensorType>(t)) &&
-                          "expected a ranked tensor or memref in LinalgInterface::getRank");
+                 "expected a ranked tensor or memref in LinalgInterface::getRank");
           return shapedType.getRank();
         }
         return 0;
@@ -425,7 +463,7 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
         Return the `opOperand` shape or an empty vector for scalars or vectors
         not wrapped within a tensor or a memref.
       }],
-      /*retTy=*/"ArrayRef<int64_t>",
+      /*retTy=*/"mlir::ArrayRef<int64_t>",
       /*methodName=*/"getShape",
       /*args=*/(ins "OpOperand*":$opOperand),
       /*methodBody=*/"",
@@ -435,7 +473,7 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
         if (auto shapedType = ::llvm::dyn_cast<ShapedType>(t)) {
           // Failsafe.
           assert((isa<MemRefType>(t) || isa<RankedTensorType>(t)) &&
-                          "expected a ranked tensor or memref in LinalgInterface::getRank");
+                 "expected a ranked tensor or memref in LinalgInterface::getRank");
           return shapedType.getShape();
         }
         return {};
@@ -447,12 +485,12 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
         generating any new IR. For each shape dimension, returns >=0 if that
         dimension is statically known, or ShapedType::kDynamic otherwise.
       }],
-      /*retTy=*/"SmallVector<int64_t>",
+      /*retTy=*/"mlir::SmallVector<int64_t>",
       /*methodName=*/"getStaticShape",
       /*args=*/(ins),
       /*methodBody=*/"",
       /*defaultImplementation=*/[{
-        SmallVector<int64_t> res;
+        mlir::SmallVector<int64_t> res;
         for (OpOperand &opOperand : this->getOperation()->getOpOperands())
           llvm::append_range(res, getShape(&opOperand));
         return res;
@@ -474,14 +512,14 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
       /*desc=*/[{
         Return the input or output indexing map for `opOperand`.
       }],
-      /*retTy=*/"AffineMap",
+      /*retTy=*/"mlir::AffineMap",
       /*methodName=*/"getMatchingIndexingMap",
       /*args=*/(ins "OpOperand*":$opOperand),
       /*methodBody=*/"",
       /*defaultImplementation=*/[{
         assert(opOperand->getOwner() == this->getOperation());
         auto indexingMaps =
-            $_op.getIndexingMaps().template getAsValueRange<AffineMapAttr>();
+          $_op.getIndexingMaps().template getAsValueRange<AffineMapAttr>();
         return *(indexingMaps.begin() + opOperand->getOperandNumber());
       }]
     >,
@@ -489,41 +527,16 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
       /*desc=*/[{
         Return the indexing map for a `result`.
       }],
-      /*retTy=*/"AffineMap",
+      /*retTy=*/"mlir::AffineMap",
       /*methodName=*/"getIndexingMapMatchingResult",
       /*args=*/(ins "OpResult":$result),
       /*methodBody=*/"",
       /*defaultImplementation=*/[{
         assert(result.getOwner() == this->getOperation());
         auto indexingMaps =
-            $_op.getIndexingMaps().template getAsValueRange<AffineMapAttr>();
+          $_op.getIndexingMaps().template getAsValueRange<AffineMapAttr>();
         return *(indexingMaps.begin() + $_op.getNumDpsInputs() +
-                          result.getResultNumber());
-      }]
-    >,
-    InterfaceMethod<
-      /*desc=*/[{
-        Return the block argument for an `opOperand`.
-      }],
-      /*retTy=*/"BlockArgument",
-      /*methodName=*/"getMatchingBlockArgument",
-      /*args=*/(ins "OpOperand*":$opOperand),
-      /*methodBody=*/"",
-      /*defaultImplementation=*/[{
-        llvm_unreachable("not implemented");
-      }]
-    >,
-    InterfaceMethod<
-      /*desc=*/[{
-        Return the single block constituting the body of the operation by
-        calling the getBody method on the concrete operation.
-      }],
-      /*retTy=*/"Block*",
-      /*methodName=*/"getBlock",
-      /*args=*/(ins),
-      /*methodBody=*/"",
-      /*defaultImplementation=*/[{
-        llvm_unreachable("HIVM Op is defined to not have block");
+                 result.getResultNumber());
       }]
     >,
     InterfaceMethod<
@@ -543,26 +556,26 @@ def HIVMStructuredOpInterface : OpInterface<"HIVMStructuredOp",
   let extraClassDeclaration = [{
     /// Return the flat list of all operand dimension sizes in the order they
     /// appear in the operands.
-    SmallVector<OpFoldResult> createFlatListOfOperandDims(OpBuilder &, Location);
+    mlir::SmallVector<OpFoldResult> createFlatListOfOperandDims(OpBuilder &, Location);
 
     /// Return the flat list of all operands' static dimension sizes in the
     /// order they appear in the operands. All operand dimension sizes have to
     /// be statically known.
-    SmallVector<int64_t, 4> createFlatListOfOperandStaticDims();
+    mlir::SmallVector<int64_t, 4> createFlatListOfOperandStaticDims();
 
     /// Create the loop ranges to materialize the computation over the current
     /// operands. This is done by applying `getShapesToLoopsMap` to
     /// `createFlatListOfOperandDims`.
-    SmallVector<Range, 4> createLoopRanges(OpBuilder &b, Location loc);
+    mlir::SmallVector<Range, 4> createLoopRanges(OpBuilder &b, Location loc);
 
     /// Compute the static loop sizes necessary to vectorize the computation.
     /// This is done by applying `getShapesToLoopsMap` to
     /// `createFlatListOfOperandStaticDims`.
-    SmallVector<int64_t, 4> computeStaticLoopSizes();
+    mlir::SmallVector<int64_t, 4> computeStaticLoopSizes();
 
     /// Returns the value that expresses the shape of the output in terms of
     /// shape of the input operands where possible
-    LogicalResult reifyResultShapes(OpBuilder &b,
+    llvm::LogicalResult reifyResultShapes(OpBuilder &b,
         ReifiedRankedShapedTypeDims &reifiedReturnShapes);
 
     /// Return the index in the indexingMaps vector that corresponds to this `opOperand`

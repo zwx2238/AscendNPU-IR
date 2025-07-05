@@ -46,3 +46,5 @@ add_public_tablegen_target(MLIRHIVMEnumsIncGen)
 add_public_tablegen_target(MLIRHIVMAttributesIncGen)
 add_dependencies(mlir-headers MLIRHIVMEnumsIncGen)
 add_dependencies(mlir-headers MLIRHIVMAttributesIncGen)
+
+add_mlir_doc(HIVMDoc HIVMDialect Dialects/ -gen-dialect-doc -dialect=hivm)

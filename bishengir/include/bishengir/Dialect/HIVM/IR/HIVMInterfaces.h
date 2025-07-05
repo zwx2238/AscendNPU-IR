@@ -10,8 +10,10 @@
 #define BISHENGIR_DIALECT_HIVM_IR_HIVMINTERFACES_H
 
 #include "bishengir/Dialect/HIVM/Interfaces/ExtraBufferOpInterface.h"
+#include "bishengir/Dialect/HIVM/Interfaces/ImplByScalarOpInterface.h"
 #include "bishengir/Dialect/HIVM/Interfaces/OpLayoutInterface.h"
 #include "bishengir/Dialect/HIVM/Interfaces/OpPipeInterface.h"
+#include "bishengir/Interfaces/AggregatedOpInterface.h"
 
 #include "mlir/IR/Operation.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
@@ -19,11 +21,13 @@
 namespace mlir {
 namespace hivm {
 /// Forward declarations.
+class HIVMStructuredOp;
 enum class TCoreType : uint32_t;
 enum class IteratorType : uint32_t;
 enum class AddressSpace : uint32_t;
 
 namespace detail {
+
 std::optional<TCoreType> queryCoreTypeHelper(Operation *op);
 
 /// Return positions in `iteratorTypes` that match `iteratorTypeName`.
@@ -40,23 +44,29 @@ inline void findPositionsOfType(ArrayRef<IteratorType> iteratorTypes,
 void getEffectsImpl(
     SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
         &effects,
-    ValueRange results, const ValueRange inputOperands,
-    ValueRange outputOperands);
+    HIVMStructuredOp hivmOp);
 
-/// Implementation to get operands with or without extra buffer.
+// Implementation to get operands with or without extra buffer.
 SmallVector<OpOperand *> getHIVMOperandsImpl(Operation *op,
                                              bool includeExtraBuffer = false);
 
-/// Implementation to get operand types with or without extra buffer.
+// Implementation to get operand types with or without extra buffer.
 SmallVector<Type> getHIVMOperandTypesImpl(Operation *op,
                                           bool includeExtraBuffer = false);
+
+// Return mask of continuous axes of an operation
+BitVector getContiguousAxesImpl(Operation *op);
+
+// Implementation to get input operands with or without extra buffer.
+SmallVector<OpOperand *>
+getHIVMInputOperandsImpl(Operation *op, bool includeExtraBuffer = false);
 
 /// Get Operands with target memref space
 SmallVector<Value> getTargetSpaceOperandsImpl(Operation *op,
                                               AddressSpace hivmSpace,
                                               bool includeExtraBuffer);
 
-/// check if the operand is vector only at a specific index
+// check if the operand is vector only at a specific index
 bool isVectorOnlyOperandImpl(Operation *op, size_t idx);
 
 } // namespace detail

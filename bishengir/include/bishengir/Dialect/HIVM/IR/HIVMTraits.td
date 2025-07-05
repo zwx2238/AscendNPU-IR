@@ -51,7 +51,7 @@ class ElementwiseNaryOpTrait<int N>
                          [HIVMStructuredOpInterface,
                           HIVMOpSameOperandsAndResultRank]>;
 
-/// Whether a op is commutative (note: only applies to the input operands)
+/// whether a op is commutative (note: only applies to the input operands)
 def CommutativeOpTrait : NativeOpTrait<"CommutativeOpTrait">;
 
 /// Op Trait for operation with operands that only support
@@ -125,7 +125,7 @@ def BroadcastableOTF :
 ///   4. (T2) `transpose` is a permutation of `range(rank(dst))`.
 ///   5. (T3) `transpose[rank(dst) - 1] = rank(dst) - 1`
 ///   6. For all `d` in `axes(dst)`, for all `src_i` for `i` in [1, N]:
-////     - (T4) `dim(dst, transpose[d]) = dim(src_i, d)`
+////     - (T4) `dim(dst, d) = dim(src_i, transpose[d])`
 /// - Dependency:
 ///   1. HIVMStructuredOpInterface
 ///   2. HIVMOpSameOperandsAndResultRank

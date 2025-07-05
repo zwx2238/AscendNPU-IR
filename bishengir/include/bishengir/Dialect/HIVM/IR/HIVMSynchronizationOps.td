@@ -35,12 +35,15 @@ def SetFlagOp : HIVM_SynchronizationOp<"set_flag"> {
   let summary = "hivm set flag.";
   let arguments = (ins HIVM_PipeAttr:$set_pipe,
                        HIVM_PipeAttr:$wait_pipe,
-                       OptionalAttr<HIVM_EventAttr>:$event_id_attr,
-                       Optional<I64>:$event_id
+                       OptionalAttr<HIVM_EventAttr>:$static_event_id,
+                       Optional<I64>:$dynamic_event_id
   );
   let assemblyFormat = [{
-    `[` $set_pipe `,` $wait_pipe (`,` $event_id_attr^)? `]`
-    (`(`$event_id^`)`)? attr-dict
+    `[`
+    $set_pipe
+    `,` $wait_pipe
+    `,` custom<EventID>($static_event_id, $dynamic_event_id)
+    `]` attr-dict
   }];
   let hasVerifier = 1;
 }
@@ -49,12 +52,15 @@ def WaitFlagOp : HIVM_SynchronizationOp<"wait_flag"> {
   let summary = "hivm wait flag.";
   let arguments = (ins HIVM_PipeAttr:$set_pipe,
                        HIVM_PipeAttr:$wait_pipe,
-                       OptionalAttr<HIVM_EventAttr>:$event_id_attr,
-                       Optional<I64>:$event_id
+                       OptionalAttr<HIVM_EventAttr>:$static_event_id,
+                       Optional<I64>:$dynamic_event_id
   );
   let assemblyFormat = [{
-    `[` $set_pipe `,` $wait_pipe (`,` $event_id_attr^)? `]`
-    (`(`$event_id^`)`)? attr-dict
+    `[`
+    $set_pipe
+    `,` $wait_pipe
+    `,` custom<EventID>($static_event_id, $dynamic_event_id)
+    `]` attr-dict
   }];
   let hasVerifier = 1;
 }
@@ -88,20 +94,20 @@ def SyncBlockOp : HIVM_SynchronizationOp<"sync_block"> {
       - `$ffts_base_addr` must be set in Ascend910B. Every time FFTS collect
         one specific `$flag_id` from all subblocks, FFTS would set the flag ID
         back to the block in the group to do synchronization.
-    }];
-    let arguments = (ins HIVM_SyncBlockModeAttr:$sync_block_mode,
-                         Builtin_IntegerAttr:$flag_id,
-                         Optional<I64>:$ffts_base_addr,
-                         OptionalAttr<HIVM_PipeAttr>:$tcube_pipe,
-                         OptionalAttr<HIVM_PipeAttr>:$tvector_pipe
-    );
-    let assemblyFormat = [{
-      attr-dict `[` $sync_block_mode `,` $flag_id`]`
-      (`ffts_base_addr` `=` $ffts_base_addr^)?
-      (`tcube_pipe` `=` $tcube_pipe^)?
-      (`tvector_pipe` `=` $tvector_pipe^)?
-    }];
-    let hasVerifier = 1;
+  }];
+  let arguments = (ins HIVM_SyncBlockModeAttr:$sync_block_mode,
+                       Builtin_IntegerAttr:$flag_id,
+                       Optional<I64>:$ffts_base_addr,
+                       OptionalAttr<HIVM_PipeAttr>:$tcube_pipe,
+                       OptionalAttr<HIVM_PipeAttr>:$tvector_pipe
+  );
+  let assemblyFormat = [{
+    attr-dict `[` $sync_block_mode `,` $flag_id`]`
+    (`ffts_base_addr` `=` $ffts_base_addr^)?
+    (`tcube_pipe` `=` $tcube_pipe^)?
+    (`tvector_pipe` `=` $tvector_pipe^)?
+  }];
+  let hasVerifier = 1;
 }
 
 def SyncBlockSetOp : HIVM_SynchronizationOp<"sync_block_set", [AttrSizedOperandSegments]> {
@@ -109,25 +115,24 @@ def SyncBlockSetOp : HIVM_SynchronizationOp<"sync_block_set", [AttrSizedOperandS
   let arguments = (ins HIVM_TCoreTypeAttr:$tcore_type,
                        HIVM_PipeAttr:$tpipe,
                        HIVM_PipeAttr:$pipe,
-                       OptionalAttr<Builtin_IntegerAttr>:$flagIdAttr,
-                       Optional<I64>:$flagIdValue,
+                       OptionalAttr<Builtin_IntegerAttr>:$static_flag_id,
+                       Optional<I64>:$dynamic_flag_id,
                        Optional<I64>:$ffts_base_addr,
                        DefaultValuedOptionalAttr<HIVM_SyncBlockInstrModeAttr,
-                         "INTRA_BLOCK_SYNCHRONIZATION">:$tsynInstrMode
+                         "INTRA_BLOCK_SYNCHRONIZATION">:$tsync_instr_mode
   );
   let assemblyFormat = [{
     attr-dict `[` $tcore_type `,` $tpipe `,` $pipe`]`
-    (`flagIdAttr` `=` $flagIdAttr^)?
-    (`flagIdValue` `=` $flagIdValue^)?
+    `flag` `=` custom<FlagID>($static_flag_id, $dynamic_flag_id)
     (`ffts_base_addr` `=` $ffts_base_addr^)?
-    (`syn_instr_mode` `=` $tsynInstrMode^)?
+    (`syn_instr_mode` `=` $tsync_instr_mode^)?
   }];
   let builders = [
     OpBuilder<(ins "TCoreTypeAttr":$tcore_type, "PipeAttr":$tpipe, "PipeAttr":$pipe,
                    "OpFoldResult":$flag_id)>,
     OpBuilder<(ins "TCoreTypeAttr":$tcore_type, "PipeAttr":$tpipe, "PipeAttr":$pipe,
                    "OpFoldResult":$flag_id, "Value":$ffts_base_addr,
-                   "SyncBlockInstrModeAttr":$tsynInstrMode)>
+                   "SyncBlockInstrModeAttr":$tsync_instr_mode)>
   ];
   let extraClassDeclaration = [{
     ::mlir::OpFoldResult getFlagId();
@@ -140,13 +145,12 @@ def SyncBlockWaitOp : HIVM_SynchronizationOp<"sync_block_wait"> {
   let arguments = (ins HIVM_TCoreTypeAttr:$tcore_type,
                        HIVM_PipeAttr:$tpipe,
                        HIVM_PipeAttr:$pipe,
-                       OptionalAttr<Builtin_IntegerAttr>:$flagIdAttr,
-                       Optional<I64>:$flagIdValue
+                       OptionalAttr<Builtin_IntegerAttr>:$static_flag_id,
+                       Optional<I64>:$dynamic_flag_id
   );
   let assemblyFormat = [{
     attr-dict `[` $tcore_type `,` $tpipe `,` $pipe`]`
-    (`flagIdAttr` `=` $flagIdAttr^)?
-    (`flagIdValue` `=` $flagIdValue^)?
+    `flag` `=` custom<FlagID>($static_flag_id, $dynamic_flag_id)
   }];
   let builders = [
     OpBuilder<(ins "TCoreTypeAttr":$tcore_type, "PipeAttr":$tpipe, "PipeAttr":$pipe,

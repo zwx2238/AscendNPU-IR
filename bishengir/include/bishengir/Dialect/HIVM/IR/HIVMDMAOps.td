@@ -36,25 +36,25 @@ class HIVM_DmaOp<string mnemonic, list<Trait> traits = []> :
     traits)> {
   code DmaOpBaseDecl = [{
     ShapedType getSrcOperandType() {
-      return getSrc().getType().cast<ShapedType>();
+      return cast<ShapedType>(getSrc().getType());
     }
     ShapedType getDstOperandType() {
-      return getDst().getType().cast<ShapedType>();
+      return cast<ShapedType>(getDst().getType());
     }
     // Implement functions necessary for DestinationStyleOpInterface.
     ::mlir::MutableOperandRange getDpsInitsMutable() {
       return getDstMutable();
     }
-  }] # structuredOpBaseDecls # opNameDeclaration # parallelIndexingMapsDecl;
+  }] # opNameDeclaration # parallelIndexingMapsDecl;
 }
 
 def LoadOp : HIVM_DmaOp<"load",
-  [AttrSizedOperandSegments,
-   SinglePipeOpTrait, OpPipeTrait<"PIPE::PIPE_MTE2">,
-   DeclareOpInterfaceMethods<HIVMInferCoreTypeInterface, ["inferCoreType"]>,
-   OperElemTypeConstraints<[0], [I8, UI8, I16, UI16, F16, BF16,
-                                 I32, UI32, F32, UI64, I64]>
-  ]> {
+    [AttrSizedOperandSegments,
+     SinglePipeOpTrait, OpPipeTrait<"PIPE::PIPE_MTE2">,
+     DeclareOpInterfaceMethods<HIVMInferCoreTypeInterface, ["inferCoreType"]>,
+     OperElemTypeConstraints<[0], [I8, UI8, I16, UI16, F16, BF16,
+                                   I32, UI32, F32, UI64, I64]>
+    ]> {
   let summary = "HIVM data load operation";
   let description = [{
     Loads the data from the global memory to the local buffer.
@@ -68,7 +68,7 @@ def LoadOp : HIVM_DmaOp<"load",
     Constraints:
     - `src` and `dst` are expected to have the same element type.
     - If `pad_mode` is not set, `src` and `dst` shape should be the same.
-    - supports both left and right padding.
+    - Supports both left and right padding.
     - `pad_value` should have the same element type as `src` and `dst`.
   }];
   let arguments = (ins TensorOrMemref:$src,
@@ -80,14 +80,14 @@ def LoadOp : HIVM_DmaOp<"load",
   );
   let results = (outs Optional<AnyRankedTensor>:$result_tensor);
   let builders = [
-      OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst)>,
-      OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst,
-                                      "Value":$left_padding_num)>,
-      OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst,
-                                      "hivm::PadModeAttr":$pad_mode, "Value":$pad_value)>,
-      OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst,
-                                      "hivm::PadModeAttr":$pad_mode, "Value":$pad_value,
-                                        "Value":$left_padding_num)>,
+    OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst)>,
+    OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst,
+                   "Value":$left_padding_num)>,
+    OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst,
+                   "hivm::PadModeAttr":$pad_mode, "Value":$pad_value)>,
+    OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst,
+                   "hivm::PadModeAttr":$pad_mode, "Value":$pad_value,
+                   "Value":$left_padding_num)>,
   ];
   let assemblyFormat = [{
     `ins` `(` $src `:` type($src) `)`
@@ -105,11 +105,10 @@ def LoadOp : HIVM_DmaOp<"load",
 }
 
 def StoreOp : HIVM_DmaOp<"store",
-  [SinglePipeOpTrait, OpPipeTrait<"PIPE::PIPE_MTE3">,
-   DeclareOpInterfaceMethods<HIVMInferCoreTypeInterface, ["inferCoreType"]>,
-   OperElemTypeConstraints<[0], [I8, UI8, I16, UI16, F16, BF16,
-                                 I32, UI32, F32, UI64, I64]>
-  ]> {
+    [SinglePipeOpTrait, OpPipeTrait<"PIPE::PIPE_MTE3">,
+     DeclareOpInterfaceMethods<HIVMInferCoreTypeInterface, ["inferCoreType"]>,
+     OperElemTypeConstraints<[0], [I8, UI8, I16, UI16, F16, BF16,
+                                   I32, UI32, F32, UI64, I64]>]> {
   let summary = "HIVM data store operation";
   let description = [{
     Stores the data on local buffer to global memory.
@@ -130,7 +129,7 @@ def StoreOp : HIVM_DmaOp<"store",
   );
   let results = (outs Optional<AnyRankedTensor>:$result_tensor);
   let builders = [
-      OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst)>
+    OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst)>
   ];
   let assemblyFormat = [{
     `ins` `(` $src `:` type($src) `)`
@@ -148,13 +147,13 @@ def StoreOp : HIVM_DmaOp<"store",
 }
 
 def CopyOp : HIVM_DmaOp<"copy",
-  [SinglePipeOpTrait,
-   DeclareOpInterfaceMethods<HIVMInferCoreTypeInterface, ["inferCoreType"]>,
-   OperElemTypeConstraints<[0], [I8, UI8, I16, UI16, F16, BF16,
-                                 I32, UI32, F32, UI64, I64]>
-  ]> {
-let summary = "HIVM data copy operation";
-let description = [{
+    [SinglePipeOpTrait,
+     DeclareOpInterfaceMethods<HIVMInferCoreTypeInterface, ["inferCoreType"]>,
+     OperElemTypeConstraints<[0], [I1, I8, UI8, I16, UI16, F16, BF16,
+                                   I32, UI32, F32, UI64, I64]>
+    ]> {
+  let summary = "HIVM data copy operation";
+  let description = [{
     Copy the data between local memory hierarchies. Currently only
     support copying from unified buffer to unified buffer.
 
@@ -168,37 +167,37 @@ let description = [{
     - If `pad_mode` is not set, `src` and `dst` shape should be the same.
     - Only support left padding.
     - `pad_value` should have the same element type as `src` and `dst`.
-}];
-let arguments = ( ins TensorOrMemref:$src,
-                      TensorOrMemref:$dst,
-                      OptionalAttr<HIVM_PadModeAttr>:$pad_mode,
-                      Optional<AnyType>:$pad_value
-);
-let results = (outs Optional<AnyRankedTensor>:$result_tensor);
-let builders = [
+  }];
+  let arguments = (ins TensorOrMemref:$src,
+                       TensorOrMemref:$dst,
+                       OptionalAttr<HIVM_PadModeAttr>:$pad_mode,
+                       Optional<AnyType>:$pad_value
+  );
+  let results = (outs Optional<AnyRankedTensor>:$result_tensor);
+  let builders = [
     OpBuilder<(ins "TypeRange":$res, "Value":$src, "Value":$dst)>
-];
-let assemblyFormat = [{
+  ];
+  let assemblyFormat = [{
     `ins` `(` $src `:` type($src) `)`
     `outs` `(` $dst `:` type($dst) `)`
     attr-dict
     (`pad_mode` `=` $pad_mode^)?
     (`pad_value` `=` $pad_value^ `:` type($pad_value))?
     (`->` type($result_tensor)^)?
-}];
-let hasFolder = 1;
-let hasVerifier = 1; // verify parameter according to hardware version
-let extraClassDeclaration = DmaOpBaseDecl # [{
-  // Declare functions necessary for SinglePipeOpTrait.
-  PIPE getPipe();
-}];
+  }];
+  let hasFolder = 1;
+  let hasVerifier = 1; // verify parameter according to hardware version
+  let extraClassDeclaration = DmaOpBaseDecl # [{
+    // Declare functions necessary for SinglePipeOpTrait.
+    PIPE getPipe();
+  }];
 }
 
 def FixpipeOp : HIVM_DmaOp<"fixpipe",
-  [SinglePipeOpTrait, OpPipeTrait<"PIPE::PIPE_FIX">,
-   HIVMCoreTypeInterface, CubeCoreTypeTrait,
-   DeclareOpInterfaceMethods<MemoryEffectsOpInterface>
-  ]> {
+    [SinglePipeOpTrait, OpPipeTrait<"PIPE::PIPE_FIX">,
+     HIVMCoreTypeInterface, CubeCoreTypeTrait,
+     DeclareOpInterfaceMethods<MemoryEffectsOpInterface>
+    ]> {
   let summary = "HIVM data copy operation from L0C to L1 or Global Memory";
   let description = [{
     Fixpipe is pipeline that performing data movement from L0C to OUT or L1,
@@ -237,10 +236,10 @@ def FixpipeOp : HIVM_DmaOp<"fixpipe",
 }
 
 def ND2NZOp : HIVM_DmaOp<"nd2nz",
-  [SinglePipeOpTrait, OpPipeTrait<"PIPE::PIPE_MTE2">,
-   HIVMCoreTypeInterface, CubeCoreTypeTrait,
-   DeclareOpInterfaceMethods<MemoryEffectsOpInterface>
-  ]> {
+    [SinglePipeOpTrait, OpPipeTrait<"PIPE::PIPE_MTE2">,
+     HIVMCoreTypeInterface, CubeCoreTypeTrait,
+     DeclareOpInterfaceMethods<MemoryEffectsOpInterface>
+    ]> {
   let summary = "HIVM data copy operation with on-the-fly ND to NZ layout transformation";
   let description = [{
     - `dst_continuous`: if present, signify that the source data is stored continuously
@@ -252,6 +251,23 @@ def ND2NZOp : HIVM_DmaOp<"nd2nz",
                        OptionalAttr<UnitAttr>:$dst_continuous
   );
   let results = (outs Variadic<AnyRankedTensor>:$result_tensor);
+  let assemblyFormat = [{
+    attr-dict
+    `ins` `(` $src `:` type($src) `)`
+    `outs` `(` $dst `:` type($dst) `)`
+    (`->` type($result_tensor)^)?
+  }];
+  let extraClassDeclaration = DmaOpBaseDecl;
+}
+
+def NZ2NDOp : HIVM_DmaOp<"nz2nd",
+    [SinglePipeOpTrait, OpPipeTrait<"PIPE::PIPE_MTE3">,
+     HIVMCoreTypeInterface, CubeCoreTypeTrait
+    ]> {
+  let summary = "HIVM data copy operation from L1 to Global Memory with NZ2ND conversion";
+  let description = [{ NZ2ND does data movement from L1 to OUT with NZ2ND conversion. }];
+  let arguments = (ins TensorOrMemref:$src, TensorOrMemref:$dst);
+  let results = (outs Optional<AnyRankedTensor>:$result_tensor);
   let assemblyFormat = [{
     attr-dict
     `ins` `(` $src `:` type($src) `)`

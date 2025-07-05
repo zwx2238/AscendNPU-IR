@@ -120,15 +120,63 @@ def BitcastOp : HIVM_Op<"bitcast",
   let arguments = (ins AnyType:$src);
   let results = (outs AnyType:$result);
   let assemblyFormat = [{
-    $src `:` type($src) `->` type($result) attr-dict
+      $src `:` type($src) `->` type($result) attr-dict
   }];
 }
 
 def SetFFTSBaseAddrOp : HIVM_Op<"set_ffts_base_addr", [CubeVectorCoreTypeTrait]> {
-  let summary = "set base addr for ffts sync mechanism.";
+  let summary = "set base addr for ffts sync machenism.";
   let arguments = (ins I64:$ffts_base_addr);
-  let assemblyFormat = [{ 
+  let assemblyFormat = [{
     attr-dict $ffts_base_addr
+  }];
+}
+
+//===----------------------------------------------------------------------===//
+// HIVM Debug op definitions.
+//===----------------------------------------------------------------------===//
+
+def PrintOp :
+  HIVM_Op<"print", 
+          [MemoryEffects<[MemRead, MemWrite]>,
+           DeclareOpInterfaceMethods<HIVMInferCoreTypeInterface, ["inferCoreType"]>]>,
+  Arguments<(ins StrAttr:$prefix,
+                 BoolAttr:$hex,
+                 AnyTypeOf<[AnyInteger, AnyFloat, TensorOrMemref]>:$arg,
+                 OptionalAttr<HIVM_TCoreTypeAttr>:$tcoretype)> {
+  let summary = "Device-side print for debugging";
+  let description = [{
+    `hivm.hir.print` takes a literal string `prefix` and an argument of
+    scalar, tensor, or memref that should be printed. The arg `hex` configs
+    if printing in hex format, and the optional arg `tcoretype` specifies the core type of this operation.
+  }];
+  let assemblyFormat = [{
+    $prefix attr-dict $arg `:` type($arg)
+  }];
+  let extraClassDeclaration = [{
+    static StringRef getOpName() { return "print"; }
+  }];
+}
+
+def InitPrintOp : HIVM_Op<"init_print",
+                          [CubeVectorCoreTypeTrait]> {
+  let summary = "Init func for the device-side print";
+  let description = [{
+    `hivm.hir.init_print` prepares for `hivm.hir.print`
+  }];
+  let assemblyFormat = [{
+    attr-dict
+  }];
+}
+
+def FinishPrintOp : HIVM_Op<"finish_print",
+                          [CubeVectorCoreTypeTrait]> {
+  let summary = "Finish func for the device-side print";
+  let description = [{
+    `hivm.hir.finish_print` prepares for `hivm.hir.print`
+  }];
+  let assemblyFormat = [{
+    attr-dict
   }];
 }
 

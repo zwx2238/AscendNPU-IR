@@ -31,8 +31,12 @@ def HIVM_Dialect : Dialect {
   }];
   let cppNamespace = "::mlir::hivm";
   let dependentDialects = [
-    "arith::ArithDialect", "math::MathDialect",
-    "memref::MemRefDialect", "tensor::TensorDialect"
+    "arith::ArithDialect",
+    "bishengir::memref_ext::MemRefExtDialect",
+    "math::MathDialect",
+    "memref::MemRefDialect",
+    "hacc::HACCDialect",
+    "tensor::TensorDialect"
   ];
   let useDefaultAttributePrinterParser = 1;
 }
@@ -45,7 +49,7 @@ def TensorOrMemref :
   AnyTypeOf<[AnyMemRef, AnyRankedTensor], "Tensor or Memref">;
 
 //===----------------------------------------------------------------------===//
-// HIVM Dialect Operations.
+// HIVM Dialect operations.
 //===----------------------------------------------------------------------===//
 
 class HIVM_Op<string mnemonic, list<Trait> traits = []>
@@ -61,15 +65,8 @@ class HIVM_StructuredOp<string mnemonic, list<Trait> traits = []>
       !listconcat([
         HIVMStructuredOpInterface,
         MemoryEffectsOpInterface,
-        DeclareOpInterfaceMethods<HIVMStructuredOpInterface>
+        DeclareOpInterfaceMethods<HIVMStructuredOpInterface>,
       ], traits)> {
-  // C++ functions that are required for all structured ops.
-  code structuredOpBaseDecls = [{
-    bool payloadUsesValueFromOperand(OpOperand * opOperand) {
-      if (isDpsInit(opOperand)) return false;
-      return !getMatchingBlockArgument(opOperand).use_empty();
-    }
-  }];
   // C++ functions that are required for parellel structured ops.
   code parallelIndexingMapsDecl = [{
     ArrayAttr getIndexingMaps() {
