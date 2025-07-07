@@ -8,7 +8,7 @@
 
 ### 安装构建BiSheng IR所需的预编译组件
 
-1. 将包含与您的目标机器对应的预编译组件的包（可在发布页面获取）解压到任意位置。在安装后，它应当包含如下内容：
+1. 将包含与您的目标机器对应的预编译组件的包（可在[发布页面](https://gitee.com/ascend/ascendnpu-ir/releases)获取）解压到任意位置。在安装后，它应当包含如下内容：
 
    ```bash
    ├── lib
@@ -47,7 +47,7 @@
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ../llvm \
       -DLLVM_ENABLE_PROJECTS="mlir;llvm" \
       -DLLVM_EXTERNAL_PROJECTS="bishengir" \
-      -DLLVM_EXTERNAL_BISHENGIR_SOURCE_DIM=${HOME}/llvm-project/third-party/bishengir \
+      -DLLVM_EXTERNAL_BISHENGIR_SOURCE_DIR=${HOME}/llvm-project/third-party/bishengir \
       -DBISHENG_IR_INSTALL_PATH=${BISHENG_IR_INSTALL_PATH}
     ```
 
@@ -59,4 +59,4 @@
 
 ### 如何构建端到端用例
 
-请查看 `example` 目录。
+请查看 `examples` 目录。

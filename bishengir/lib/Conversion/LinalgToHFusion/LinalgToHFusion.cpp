@@ -1,10 +1,19 @@
-//===- LinalgToHFusion.cpp - conversion from Linalg to HFusion dialect ----===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===----------------------------------------------------------------------===//
+/**
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ * This file is a part of the CANN Open Software.
+ * Licensed under CANN Open Software License Agreement Version 1.0 (the
+ * "License"). Please refer to the License for details. You may not use this
+ * file except in compliance with the License. THIS SOFTWARE IS PROVIDED ON AN
+ * "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS
+ * FOR A PARTICULAR PURPOSE. See LICENSE in the root of the software repository
+ * for the full text of the License.
+ */
+
+/*!
+ * \file LinalgToHFusion.cpp
+ * \brief Conversion from Linalg to HFusion dialect
+ */
 
 #include "bishengir/Conversion/LinalgToHFusion/LinalgToHFusion.h"
 #include "bishengir/Dialect/HFusion/IR/HFusion.h"
@@ -47,7 +56,7 @@ struct LinalgMapToHFusionPattern : OpRewritePattern<linalg::MapOp> {
       return failure();
     StringRef funcName = callOp.getCallee();
     if (funcName.starts_with("__hmf_relu")) {
-      auto unaryAttr = 
+      auto unaryAttr =
           rewriter.getAttr<hfusion::UnaryFnAttr>(hfusion::UnaryFn::relu);
       auto fnAttr = rewriter.getNamedAttr("fun", unaryAttr);
       rewriter.replaceOpWithNewOp<hfusion::ElemwiseUnaryOp>(
@@ -131,7 +140,8 @@ struct LinalgMapToHFusionPattern : OpRewritePattern<linalg::MapOp> {
           ValueRange{op.getInit()}, ArrayRef{fnAttr});
       return success();
     }
-    if (funcName.starts_with("__hmf_tanf") || funcName.starts_with("__hmf_tanDh")) {
+    if (funcName.starts_with("__hmf_tanf") ||
+        funcName.starts_with("__hmf_tanDh")) {
       auto unaryAttr =
           rewriter.getAttr<hfusion::UnaryFnAttr>(hfusion::UnaryFn::tan);
       auto fnAttr = rewriter.getNamedAttr("fun", unaryAttr);
@@ -139,7 +149,8 @@ struct LinalgMapToHFusionPattern : OpRewritePattern<linalg::MapOp> {
           op, op.getInputs(), ValueRange{op.getInit()}, ArrayRef{fnAttr});
       return success();
     }
-    if (funcName.starts_with("__hmf_tanhf") || funcName.starts_with("__hmf_tanhDh")) {
+    if (funcName.starts_with("__hmf_tanhf") ||
+        funcName.starts_with("__hmf_tanhDh")) {
       auto unaryAttr =
           rewriter.getAttr<hfusion::UnaryFnAttr>(hfusion::UnaryFn::tanh);
       auto fnAttr = rewriter.getNamedAttr("fun", unaryAttr);

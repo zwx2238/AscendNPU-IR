@@ -8,7 +8,7 @@
 
 ### Installing pre-builts that are required to build BiShengIR
 
-1. Extract the package (available in the release page) containing the pre-builts corresponding to your target machine to any location. After install, it should contain the following contents:
+1. Extract the package (available in the [release page](https://gitee.com/ascend/ascendnpu-ir/releases)) containing the pre-builts corresponding to your target machine to any location. After install, it should contain the following contents:
 
    ```bash
    ├── lib
@@ -46,7 +46,7 @@
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ../llvm \
       -DLLVM_ENABLE_PROJECTS="mlir;llvm" \
       -DLLVM_EXTERNAL_PROJECTS="bishengir" \
-      -DLLVM_EXTERNAL_BISHENGIR_SOURCE_DIM=${HOME}/llvm-project/third-party/bishengir \
+      -DLLVM_EXTERNAL_BISHENGIR_SOURCE_DIR=${HOME}/llvm-project/third-party/bishengir \
       -DBISHENG_IR_INSTALL_PATH=${BISHENG_IR_INSTALL_PATH}
     ```
 
@@ -58,4 +58,4 @@
 
 ### Building an end-to-end example
 
-Please refer to the `example` directory.
+Please refer to the `examples` directory.

@@ -21,7 +21,7 @@ export ASCEND_HOME_PATH=/usr/local/ascend-toolkit/latest
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ../llvm \
     -DLLVM_ENABLE_PROJECTS="mlir;llvm" \
     -DLLVM_EXTERNAL_PROJECTS="bishengir" \
-    -DLLVM_EXTERNAL_BISHENGIR_SOURCE_DIM=${HOME}/llvm-project/third-party/bishengir \
+    -DLLVM_EXTERNAL_BISHENGIR_SOURCE_DIR=${HOME}/llvm-project/third-party/bishengir \
     -DBISHENG_IR_INSTALL_PATH=${BISHENG_IR_INSTALL_PATH} \
     -DBISHENGIR_BUILD_EXAMPLES=ON
     ```
