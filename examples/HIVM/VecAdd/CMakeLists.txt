@@ -9,4 +9,20 @@
 # FOR A PARTICULAR PURPOSE. See LICENSE in the root of the software repository
 # for the full text of the License.
 
-add_subdirectory(HIVM)
+add_executable(hivm-vec-add
+  main.cpp
+)
+
+target_include_directories(hivm-vec-add PUBLIC
+  ${ASCEND_HOME_PATH}/include
+  ${ASCEND_HOME_PATH}/include/experiment/msprof
+)
+
+target_link_directories(hivm-vec-add PUBLIC
+  ${ASCEND_HOME_PATH}/lib64
+)
+
+target_link_libraries(hivm-vec-add PUBLIC
+  runtime
+  ascendcl
+)

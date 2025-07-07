@@ -1,3 +1,0 @@
-add_mlir_interface(ExtraBufferOpInterface)
-add_mlir_interface(OpLayoutInterface)
-add_mlir_interface(OpPipeInterface)
