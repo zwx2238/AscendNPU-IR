@@ -20,11 +20,15 @@
 #ifndef BISHENGIR_INITALLDIALECTS_H
 #define BISHENGIR_INITALLDIALECTS_H
 
+#include "bishengir/Config/bishengir-config.h"
+
 #include "bishengir/Dialect/Annotation/IR/Annotation.h"
+#if (!BISHENGIR_BUILD_STANDALONE_IR_ONLY)
 #include "bishengir/Dialect/HACC/IR/HACC.h"
 #include "bishengir/Dialect/HFusion/IR/HFusion.h"
 #include "bishengir/Dialect/HIVM/IR/HIVM.h"
 #include "bishengir/Dialect/MathExt/IR/MathExt.h"
+#endif
 
 #include "mlir/IR/DialectRegistry.h"
 #include "mlir/IR/MLIRContext.h"
@@ -34,11 +38,16 @@ namespace bishengir {
 /// Add all the bishengir-specific dialects to the provided registry.
 inline void registerAllDialects(mlir::DialectRegistry &registry) {
   // clang-format off
-  registry.insert<mlir::annotation::AnnotationDialect,
-                  mlir::hacc::HACCDialect,
-                  mlir::hfusion::HFusionDialect,
-                  mlir::hivm::HIVMDialect,
-                  mlir::mathExt::MathExtDialect>();
+  registry.insert<
+  mlir::annotation::AnnotationDialect
+#if (!BISHENGIR_BUILD_STANDALONE_IR_ONLY)
+  ,
+  mlir::hacc::HACCDialect,
+  mlir::hfusion::HFusionDialect,
+  mlir::hivm::HIVMDialect,
+  mlir::mathExt::MathExtDialect
+#endif
+  >();
   // clang-format on
 }
 
