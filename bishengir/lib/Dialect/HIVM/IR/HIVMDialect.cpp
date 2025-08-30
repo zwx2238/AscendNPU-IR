@@ -40,6 +40,11 @@ void hivm::HIVMDialect::initialize() {
 #include "bishengir/Dialect/HIVM/IR/HIVMSynchronizationOps.cpp.inc"
       >();
 
+  addOperations<
+#define GET_OP_LIST
+#include "bishengir/Dialect/HIVM/IR/HIVMOps.cpp.inc"
+      >();
+
   addAttributes<
 #define GET_ATTRDEF_LIST
 #include "bishengir/Dialect/HIVM/IR/HIVMAttrs.cpp.inc"

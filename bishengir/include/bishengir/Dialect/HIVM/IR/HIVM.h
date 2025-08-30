@@ -71,10 +71,10 @@
 // HIVM Dialect Operations
 //===----------------------------------------------------------------------===//
 
-#if (!BISHENGIR_BUILD_STANDALONE_IR_ONLY)
 #define GET_OP_CLASSES
 #include "bishengir/Dialect/HIVM/IR/HIVMOps.h.inc"
 
+#if (!BISHENGIR_BUILD_STANDALONE_IR_ONLY)
 #define GET_OP_CLASSES
 #include "bishengir/Dialect/HIVM/IR/HIVMDMAOps.h.inc"
 
