@@ -101,16 +101,17 @@ def HIVM_AddressSpaceEnum : HIVM_I32Enum<
     HIVM_AddressSpace_UB
   ]>;
 
+def HIVM_AddressSpaceAttr : HIVM_Attr<"AddressSpace", "address_space"
 #ifndef BISHENGIR_BUILD_STANDALONE_IR_ONLY
-def HIVM_AddressSpaceAttr : HIVM_Attr<"AddressSpace", "address_space",
-   [DeclareAttrInterfaceMethods<DeviceMappingAttrInterface>]> {
+   ,[DeclareAttrInterfaceMethods<DeviceMappingAttrInterface>]
+#endif
+   > {
   let parameters = (ins EnumParameter<HIVM_AddressSpaceEnum>:$address_space);
   let assemblyFormat = "`<` params `>`";
   let description = [{
     HIVM address space mapping attribute. Maps to GM, L1, L0A, L0B, L0C and UB.
   }];
 }
-#endif
 
 //===----------------------------------------------------------------------===//
 // Op Pipe

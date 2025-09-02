@@ -1,5 +1,6 @@
 add_bishengir_dialect_library(BiShengIRHIVMDialect
   HIVMDialect.cpp
+  HIVMOps.cpp
   HIVMSynchronizationOps.cpp
 
   ADDITIONAL_HEADER_DIRS
@@ -7,6 +8,7 @@ add_bishengir_dialect_library(BiShengIRHIVMDialect
 
   DEPENDS
   BiShengIRHIVMDialectIncGen
+  BiShengIRHIVMOpIncGen
   BiShengIRHIVMSynchronizationOpsIncGen
   BiShengIRHIVMEnumsIncGen
   BiShengIRHIVMAttributesIncGen
