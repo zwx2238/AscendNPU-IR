@@ -18,19 +18,31 @@ echo ""
 echo "1️⃣  检查必要工具..."
 echo ""
 
-# 检查 bishengir-opt
-if [ ! -f "$PROJECT_ROOT/build/bin/bishengir-opt" ]; then
+# 检查 bishengir-opt - 优先本地，否则系统
+if [ -f "$PROJECT_ROOT/build/bin/bishengir-opt" ]; then
+    BISHENGIR_OPT="$PROJECT_ROOT/build/bin/bishengir-opt"
+    echo "✓ bishengir-opt (本地): $BISHENGIR_OPT"
+elif command -v bishengir-opt &> /dev/null; then
+    BISHENGIR_OPT="bishengir-opt"
+    echo "✓ bishengir-opt (系统): $(which bishengir-opt)"
+else
     echo "❌ 错误: bishengir-opt 未找到"
+    echo "   请编译或确保 bishengir-opt 在 PATH 中"
     exit 1
 fi
-echo "✓ bishengir-opt: $PROJECT_ROOT/build/bin/bishengir-opt"
 
-# 检查 bishengir-compile
-if [ ! -f "$PROJECT_ROOT/build/bin/bishengir-compile" ]; then
+# 检查 bishengir-compile - 优先本地，否则系统
+if [ -f "$PROJECT_ROOT/build/bin/bishengir-compile" ]; then
+    BISHENGIR_COMPILE="$PROJECT_ROOT/build/bin/bishengir-compile"
+    echo "✓ bishengir-compile (本地): $BISHENGIR_COMPILE"
+elif command -v bishengir-compile &> /dev/null; then
+    BISHENGIR_COMPILE="bishengir-compile"
+    echo "✓ bishengir-compile (系统): $(which bishengir-compile)"
+else
     echo "❌ 错误: bishengir-compile 未找到"
+    echo "   请编译或确保 bishengir-compile 在 PATH 中"
     exit 1
 fi
-echo "✓ bishengir-compile: $PROJECT_ROOT/build/bin/bishengir-compile"
 
 # 检查 bishengir-hivm-compile (需要手动提供)
 if ! command -v bishengir-hivm-compile &> /dev/null; then
@@ -79,7 +91,7 @@ TMP_DIR="/tmp/bishengir_test_$$"
 mkdir -p "$TMP_DIR"
 
 echo "命令: bishengir-opt $INPUT_FILE"
-"$PROJECT_ROOT/build/bin/bishengir-opt" "$INPUT_FILE" > "$TMP_DIR/validated.mlir"
+$BISHENGIR_OPT "$INPUT_FILE" > "$TMP_DIR/validated.mlir"
 echo "✓ HIVM IR 验证成功"
 echo ""
 
@@ -95,7 +107,7 @@ echo "方法 A: 使用 bishengir-compile（不启用 LIR 编译）"
 echo "命令: bishengir-compile -enable-lir-compile=false $INPUT_FILE -o $OUTPUT_LL"
 echo ""
 
-if "$PROJECT_ROOT/build/bin/bishengir-compile" \
+if $BISHENGIR_COMPILE \
     -enable-lir-compile=false \
     "$INPUT_FILE" \
     -o "$OUTPUT_LL" 2>&1; then
@@ -128,7 +140,7 @@ echo "命令: bishengir-compile -enable-hivm-compile=true -target=Ascend910B1 $I
 echo ""
 
 if command -v bishengir-hivm-compile &> /dev/null; then
-    if "$PROJECT_ROOT/build/bin/bishengir-compile" \
+    if $BISHENGIR_COMPILE \
         -enable-hivm-compile=true \
         -target=Ascend910B1 \
         "$INPUT_FILE" \
