@@ -20,9 +20,13 @@ elif command -v bishengir-opt &> /dev/null; then
     BISHENGIR_OPT="bishengir-opt"
     echo "   使用系统安装版本: $(which bishengir-opt)"
 else
-    echo "❌ 错误: bishengir-opt 未找到"
-    echo "   请先运行构建：./build-tools/build.sh -o ./build --build-type Release"
-    echo "   或者确保 bishengir-opt 在系统 PATH 中"
+    echo "   ⚠️  bishengir-opt 未找到"
+    echo "   注意: 系统安装的 BiShengIR 通常只包含 bishengir-compile"
+    echo "   bishengir-opt 是开发工具，需要从源码编译"
+    echo ""
+    echo "   你仍然可以使用 bishengir-compile 进行编译"
+    echo "   如需 bishengir-opt，请运行: ./build-tools/auto-build.sh"
+    echo ""
     exit 1
 fi
 
